@@ -11,27 +11,10 @@ async function initVoiceChat() {
                 noiseSuppression: true,
                 autoGainControl: false
             },
-            video: {
-                width: { ideal: 320 },
-                height: { ideal: 240 }
-            }
+            video: false // Kamera isteği iptal edildi
         };
 
-        try {
-            // Önce hem mikrofon hem kamera iste
-            localStream = await navigator.mediaDevices.getUserMedia(constraints);
-        } catch (cameraErr) {
-            // Eğer kullanıcının bilgisayarında kamera yoksa hata atar!
-            // Bu durumda sadece mikrofon isteyerek devam et.
-            console.warn("Kamera bulunamadı, sadece ses bağlantısı açılıyor...", cameraErr);
-            constraints.video = false;
-            localStream = await navigator.mediaDevices.getUserMedia(constraints);
-        }
-        
-        // Başlangıçta kamerayı kapalı tutalım
-        if (localStream.getVideoTracks().length > 0) {
-            localStream.getVideoTracks()[0].enabled = false;
-        }
+        localStream = await navigator.mediaDevices.getUserMedia(constraints);
         
         // Yerel kamera ve mikrofon hazır olduğunda arayüzü tetikle
         if (window.updateLocalVideo) {

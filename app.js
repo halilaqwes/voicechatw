@@ -12,7 +12,6 @@ const myName = document.getElementById('my-name');
 const muteBtn = document.getElementById('mute-btn');
 const deafenBtn = document.getElementById('deafen-btn');
 const logoutBtn = document.getElementById('logout-btn');
-const camBtn = document.getElementById('cam-btn');
 
 const chatInput = document.getElementById('chat-input');
 const chatMessages = document.getElementById('chat-messages');
@@ -48,22 +47,6 @@ passwordInput.addEventListener('keypress', (e) => {
 muteBtn.addEventListener('click', handleMuteToggle);
 deafenBtn.addEventListener('click', handleDeafenToggle);
 logoutBtn.addEventListener('click', handleLogout);
-
-camBtn.addEventListener('click', () => {
-    if(typeof toggleCamera !== 'undefined') {
-        const isCamOn = toggleCamera();
-        if(isCamOn) {
-            camBtn.classList.add('active'); // Active means Cam is ON here
-        } else {
-            camBtn.classList.remove('active');
-        }
-        
-        const currentUser = getCurrentUser();
-        if(currentUser) {
-            updateUserCamIcon(currentUser.id, isCamOn);
-        }
-    }
-});
 
 chatInput.addEventListener('keypress', (e) => {
     if (e.key === 'Enter' && chatInput.value.trim() !== '') {
@@ -156,7 +139,6 @@ function handleLogout() {
     isDeafened = false;
     deafenBtn.classList.remove('active');
     muteBtn.classList.remove('active');
-    camBtn.classList.remove('active');
 }
 
 // Called directly from voice.js when a peer joins

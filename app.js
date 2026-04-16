@@ -12,6 +12,7 @@ const myName = document.getElementById('my-name');
 const muteBtn = document.getElementById('mute-btn');
 const deafenBtn = document.getElementById('deafen-btn');
 const logoutBtn = document.getElementById('logout-btn');
+const camBtn = document.getElementById('cam-btn');
 
 const chatInput = document.getElementById('chat-input');
 const chatMessages = document.getElementById('chat-messages');
@@ -27,6 +28,22 @@ passwordInput.addEventListener('keypress', (e) => {
 muteBtn.addEventListener('click', handleMuteToggle);
 deafenBtn.addEventListener('click', handleDeafenToggle);
 logoutBtn.addEventListener('click', handleLogout);
+
+camBtn.addEventListener('click', () => {
+    if(typeof toggleCamera !== 'undefined') {
+        const isCamOn = toggleCamera();
+        if(isCamOn) {
+            camBtn.classList.add('active'); // Active means Cam is ON here
+        } else {
+            camBtn.classList.remove('active');
+        }
+        
+        const currentUser = getCurrentUser();
+        if(currentUser) {
+            updateUserCamIcon(currentUser.id, isCamOn);
+        }
+    }
+});
 
 chatInput.addEventListener('keypress', (e) => {
     if (e.key === 'Enter' && chatInput.value.trim() !== '') {
@@ -119,6 +136,7 @@ function handleLogout() {
     isDeafened = false;
     deafenBtn.classList.remove('active');
     muteBtn.classList.remove('active');
+    camBtn.classList.remove('active');
 }
 
 // Called directly from voice.js when a peer joins
@@ -175,9 +193,10 @@ function createParticipantCard(id, name, isMe) {
     card.id = 'participant-' + id;
     
     card.innerHTML = `
-        <div class="participant-avatar" id="avatar-${id}" style="background-color: transparent;">
-            <img src="${avatarUrl}" width="64" height="64" style="border-radius:50%" />
-            <div class="mute-indicator" id="mute-indicator-${id}" style="display:none;">
+        <div class="participant-avatar" id="avatar-${id}" style="background-color: transparent; position: relative;">
+            <video id="video-${id}" autoplay playsinline muted style="width:100%; height:100%; object-fit:cover; position:absolute; top:0; left:0; display:none; transform: scaleX(-1); border-radius: 50%; z-index:5;"></video>
+            <img src="${avatarUrl}" id="img-${id}" width="64" height="64" style="border-radius:50%; display:block; z-index:1;" />
+            <div class="mute-indicator" id="mute-indicator-${id}" style="display:none; z-index:10;">
                 <svg viewBox="0 0 24 24" width="14" height="14" fill="#da373c"><path d="M19 11h-1.7c0 .74-.16 1.43-.43 2.05l1.23 1.23c.56-.98.9-2.09.9-3.28zm-4.02 3.28c-.76.54-1.64.91-2.58 1.08v2.14c1.48-.22 2.8-.84 3.88-1.74l-1.3-1.48zM14.98 11.17l-3.3-3.3V5c0-1.66 1.34-3 3-3s3 1.34 3 3v6.17zM4.27 3L3 4.27 l9 9v3.73c-2.76 0-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V22h2v-3.08c1.37-.2 2.63-.76 3.69-1.5l3.04 3.04 1.27-1.27-16.73-16.72z"/></svg>
             </div>
         </div>
@@ -193,9 +212,20 @@ function createParticipantCard(id, name, isMe) {
             const audioElem = document.getElementById(`audio-${id}`);
             if(audioElem) audioElem.volume = e.target.value;
         });
+
+        const videoElem = document.getElementById(`video-${id}`);
+        const audioElem = document.getElementById(`audio-${id}`);
+        if(videoElem && audioElem && audioElem.srcObject) {
+            videoElem.srcObject = audioElem.srcObject;
+        }
     }
     
     if(isMe) {
+        const videoElem = document.getElementById(`video-${id}`);
+        if(videoElem && localStream) {
+            videoElem.srcObject = localStream;
+        }
+
         // Own voice analysis setup (from localStream) when voice.js returns
         setTimeout(() => {
             if(typeof localStream !== 'undefined' && localStream) {
@@ -204,6 +234,20 @@ function createParticipantCard(id, name, isMe) {
         }, 2000); // give it time to load local stream
     }
 }
+
+window.updateUserCamIcon = (id, isCamOn) => {
+    const video = document.getElementById('video-' + id);
+    const img = document.getElementById('img-' + id);
+    if(video && img) {
+        if(isCamOn) {
+            video.style.display = 'block';
+            img.style.display = 'none';
+        } else {
+            video.style.display = 'none';
+            img.style.display = 'block';
+        }
+    }
+};
 
 // Global olarak çağırılan sessiz durumu
 window.updateUserMuteIcon = (id, isMuted) => {

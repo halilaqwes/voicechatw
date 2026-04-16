@@ -10,8 +10,17 @@ async function initVoiceChat() {
                 echoCancellation: true,
                 noiseSuppression: true,
                 autoGainControl: false // Dalgalanmayı (sesin kısılıp açılmasını) önlemek için kapatıldı
-            } 
+            },
+            video: {
+                width: { ideal: 320 },
+                height: { ideal: 240 }
+            }
         });
+        
+        // Başlangıçta kamerayı kapalı tutalım
+        if (localStream.getVideoTracks().length > 0) {
+            localStream.getVideoTracks()[0].enabled = false;
+        }
         
         peer = new Peer(currentUser.id, {
             debug: 2,
@@ -40,7 +49,7 @@ async function initVoiceChat() {
         // Biri bizi aradığında (Diğer kullanıcı sonradan online olursa)
         peer.on('call', (call) => {
             console.log('Gelen çağrı: ' + call.peer);
-            call.answer(localStream); // Çağrıyı kendi mikrofonumuzla cevaplıyoruz
+            call.answer(localStream); // Çağrıyı kendi mikrofonumuz/kameramızla cevaplıyoruz
             handleCallEvents(call);
         });
 
@@ -48,6 +57,18 @@ async function initVoiceChat() {
         peer.on('connection', (conn) => {
             handleDataConnection(conn);
         });
+
+        // Hata ayıklama ve kopmaları giderme (Mesh Healing)
+        setInterval(() => {
+            if (!peer || !peer.open) return;
+            const otherIds = getAllUserIds().filter(uid => uid !== currentUser.id);
+            otherIds.forEach(targetId => {
+                if (!activeCalls[targetId]) {
+                    // Bağlantı listesinde yoklarsa tekrar dene
+                    callUser(targetId);
+                }
+            });
+        }, 8000); // 8 saniyede bir tarar
 
         peer.on('error', (err) => {
             console.error('PeerJS Hatası:', err);
@@ -124,8 +145,14 @@ function handleDataConnection(conn) {
         dataConnections[conn.peer] = conn;
         // Bağlandığımızda karşı tarafa mikrofonumuzun o anki durumunu bildir
         if(localStream) {
-            const isMuted = !localStream.getAudioTracks()[0].enabled;
-            if(isMuted) conn.send({ type: 'MUTE', state: true });
+            if(localStream.getAudioTracks().length > 0) {
+                const isMuted = !localStream.getAudioTracks()[0].enabled;
+                if(isMuted) conn.send({ type: 'MUTE', state: true });
+            }
+            if(localStream.getVideoTracks().length > 0) {
+                const isCamOn = localStream.getVideoTracks()[0].enabled;
+                if(isCamOn) conn.send({ type: 'CAM', state: true });
+            }
         }
     });
 
@@ -134,6 +161,11 @@ function handleDataConnection(conn) {
         if(data.type === 'MUTE') {
             if(window.updateUserMuteIcon) {
                 window.updateUserMuteIcon(conn.peer, data.state);
+            }
+        }
+        else if (data.type === 'CAM') {
+            if(window.updateUserCamIcon) {
+                window.updateUserCamIcon(conn.peer, data.state);
             }
         }
         else if (data.type === 'CHAT') {
@@ -149,7 +181,7 @@ function handleDataConnection(conn) {
 }
 
 function toggleMute() {
-    if(localStream) {
+    if(localStream && localStream.getAudioTracks().length > 0) {
         const audioTrack = localStream.getAudioTracks()[0];
         audioTrack.enabled = !audioTrack.enabled;
         const isMuted = !audioTrack.enabled;
@@ -162,10 +194,31 @@ function toggleMute() {
     return true;
 }
 
+function toggleCamera() {
+    if(localStream && localStream.getVideoTracks().length > 0) {
+        const videoTrack = localStream.getVideoTracks()[0];
+        videoTrack.enabled = !videoTrack.enabled;
+        
+        broadcastCamState(videoTrack.enabled);
+        
+        // Kamera durumunu kendimize göstermek için (Local Video handling in app.js if needed)
+        return videoTrack.enabled; // true = kamera açık, false = kapalı
+    }
+    return false;
+}
+
 function broadcastMuteState(isMuted) {
     Object.values(dataConnections).forEach(conn => {
         if(conn && conn.open) {
             conn.send({ type: 'MUTE', state: isMuted });
+        }
+    });
+}
+
+function broadcastCamState(isCamOn) {
+    Object.values(dataConnections).forEach(conn => {
+        if(conn && conn.open) {
+            conn.send({ type: 'CAM', state: isCamOn });
         }
     });
 }

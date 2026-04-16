@@ -22,6 +22,11 @@ async function initVoiceChat() {
             localStream.getVideoTracks()[0].enabled = false;
         }
         
+        // Yerel kamera ve mikrofon hazır olduğunda arayüzü tetikle
+        if (window.updateLocalVideo) {
+            window.updateLocalVideo(localStream);
+        }
+        
         peer = new Peer(currentUser.id, {
             debug: 2,
             pingInterval: 5000, // Bağlantı kopmalarını önlemek için sık ping
@@ -173,6 +178,11 @@ function handleDataConnection(conn) {
                 window.onChatMessageReceived(conn.peer, data.text);
             }
         }
+        else if (data.type === 'SCORE') {
+            if(window.updateLeaderboard) {
+                window.updateLeaderboard(data.name, data.score);
+            }
+        }
     });
 
     conn.on('close', () => {
@@ -227,6 +237,15 @@ window.broadcastChat = function(text) {
     Object.values(dataConnections).forEach(conn => {
         if(conn && conn.open) {
             conn.send({ type: 'CHAT', text: text });
+        }
+    });
+};
+
+window.broadcastScore = function(score) {
+    const currentUser = getCurrentUser();
+    Object.values(dataConnections).forEach(conn => {
+        if(conn && conn.open) {
+            conn.send({ type: 'SCORE', score: score, name: currentUser.name });
         }
     });
 };

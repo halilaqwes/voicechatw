@@ -28,19 +28,46 @@
         <!-- Left Sidebar -->
         <div class="sidebar">
             <h2 class="sidebar-title">KANALLAR</h2>
-            <div class="channel active">
+            <div class="channel active" id="nav-chat">
                 <span class="hashtag">#</span> Genel Sohbet
+            </div>
+            <div class="channel" id="nav-game">
+                <span class="hashtag">🎮</span> Mini Oyunlar
             </div>
         </div>
 
         <!-- Main Content -->
-        <div class="content">
-            <div class="header">
-                <h3>Genel Sohbet</h3>
-            </div>
+        <div class="content" style="position: relative;">
             
-            <div class="participants-area" id="participants-container">
-                <!-- Participants will be dynamically added here -->
+            <!-- CHAT VIEW -->
+            <div id="view-chat" style="display:flex; flex-direction:column; flex:1;">
+                <div class="header">
+                    <h3>Genel Sohbet</h3>
+                </div>
+                <div class="participants-area" id="participants-container">
+                    <!-- Participants will be dynamically added here -->
+                </div>
+            </div>
+
+            <!-- GAME VIEW -->
+            <div id="view-game" style="display:none; flex-direction:row; flex:1; overflow:hidden;">
+                <div style="flex:1; display:flex; flex-direction:column; align-items:center; position:relative; background-color: var(--bg-primary);">
+                    <div class="header" style="width: 100%;"><h3 style="padding-left:16px;">Mini Oyunlar - 🏀 Basketbol</h3></div>
+                    <canvas id="basketball-canvas" width="400" height="400" style="background:#2b2d31; margin-top:20px; border-radius:8px; border:2px solid #1e1f22; cursor:pointer; touch-action: manipulation;"></canvas>
+                    <div id="game-ui" style="position:absolute; top:80px; color:white; pointer-events:none; text-align:center;">
+                        <h2 id="game-score">Skor: 0</h2>
+                        <h3 id="game-time">Süre: 60s</h3>
+                    </div>
+                    <button id="start-game-btn" class="control-btn" style="width:200px; padding:12px; margin-top:15px; background:var(--green); color:white; border-radius:4px; border:none; cursor:pointer;">Oyunu Başlat</button>
+                    <p style="color:var(--text-muted); font-size:12px; margin-top:10px;">Topu fırlatmak için tıkayın!</p>
+                </div>
+                <!-- LEADERBOARD -->
+                <div style="width:220px; background:var(--bg-secondary); border-left:1px solid var(--bg-tertiary); display:flex; flex-direction:column;">
+                    <div class="chat-header">👑 Liderlik Tablosu</div>
+                    <div id="leaderboard-list" style="padding:16px; color:white; display:flex; flex-direction:column; gap:10px; overflow-y:auto;">
+                        <!-- Scores will be injected -->
+                    </div>
+                </div>
             </div>
 
             <!-- Controls (Bottom) -->
@@ -93,6 +120,7 @@
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <script src="auth.js"></script>
     <script src="voice.js"></script>
+    <script src="game.js"></script>
     <script src="app.js"></script>
 </body>
 </html>

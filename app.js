@@ -17,10 +17,30 @@ const camBtn = document.getElementById('cam-btn');
 const chatInput = document.getElementById('chat-input');
 const chatMessages = document.getElementById('chat-messages');
 
+const navChat = document.getElementById('nav-chat');
+const navGame = document.getElementById('nav-game');
+const viewChat = document.getElementById('view-chat');
+const viewGame = document.getElementById('view-game');
+
 let isDeafened = false;
 const audioAnalyzers = {}; 
 
 // Event Listeners
+if(navChat && navGame) {
+    navChat.addEventListener('click', () => {
+        navChat.classList.add('active');
+        navGame.classList.remove('active');
+        viewChat.style.display = 'flex';
+        viewGame.style.display = 'none';
+    });
+    navGame.addEventListener('click', () => {
+        navGame.classList.add('active');
+        navChat.classList.remove('active');
+        viewGame.style.display = 'flex';
+        viewChat.style.display = 'none';
+    });
+}
+
 loginBtn.addEventListener('click', () => handleLogin(passwordInput.value.trim()));
 passwordInput.addEventListener('keypress', (e) => {
     if (e.key === 'Enter') handleLogin(passwordInput.value.trim());
@@ -221,30 +241,34 @@ function createParticipantCard(id, name, isMe) {
     }
     
     if(isMe) {
-        const videoElem = document.getElementById(`video-${id}`);
-        if(videoElem && localStream) {
-            videoElem.srcObject = localStream;
-        }
-
-        // Own voice analysis setup (from localStream) when voice.js returns
-        setTimeout(() => {
-            if(typeof localStream !== 'undefined' && localStream) {
-                setupAudioAnalysis(id, localStream);
-            }
-        }, 2000); // give it time to load local stream
+        // We do not rely on localStream here since it could be null.
+        // It will be attached by updateLocalVideo callback!
     }
 }
+
+// Called directly from voice.js right after camera/mic permission is granted
+window.updateLocalVideo = (stream) => {
+    const user = getCurrentUser();
+    if(user) {
+        const videoElem = document.getElementById(`video-${user.id}`);
+        if(videoElem) videoElem.srcObject = stream;
+        setupAudioAnalysis(user.id, stream);
+    }
+};
 
 window.updateUserCamIcon = (id, isCamOn) => {
     const video = document.getElementById('video-' + id);
     const img = document.getElementById('img-' + id);
+    const card = document.getElementById('participant-' + id);
     if(video && img) {
         if(isCamOn) {
             video.style.display = 'block';
             img.style.display = 'none';
+            if(card) card.classList.add('video-active');
         } else {
             video.style.display = 'none';
             img.style.display = 'block';
+            if(card) card.classList.remove('video-active');
         }
     }
 };

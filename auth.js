@@ -6,10 +6,9 @@
 
 const CONFIG = {
     users: {
-        // [Şifre] : { id: 'sabit-id', name: 'Görünecek İsim' }
-        'sifre1': { id: 'voice-user-1', name: 'Kişi 1' },
-        'sifre2': { id: 'voice-user-2', name: 'Kişi 2' },
-        'sifre3': { id: 'voice-user-3', name: 'Kişi 3' }
+        'sifre1': { id: 'voice-user-1', name: 'halilaqwe' },
+        'sifremaho': { id: 'voice-user-2', name: 'maho' },
+        'sifrefurkan': { id: 'voice-user-3', name: 'furkan' }
     }
 };
 

@@ -11,21 +11,33 @@ const myAvatar = document.getElementById('my-avatar');
 const myName = document.getElementById('my-name');
 const muteBtn = document.getElementById('mute-btn');
 const deafenBtn = document.getElementById('deafen-btn');
+const logoutBtn = document.getElementById('logout-btn');
 
 let isDeafened = false;
 const audioAnalyzers = {}; 
 
 // Event Listeners
-loginBtn.addEventListener('click', handleLogin);
+loginBtn.addEventListener('click', () => handleLogin(passwordInput.value.trim()));
 passwordInput.addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') handleLogin();
+    if (e.key === 'Enter') handleLogin(passwordInput.value.trim());
 });
 muteBtn.addEventListener('click', handleMuteToggle);
 deafenBtn.addEventListener('click', handleDeafenToggle);
+logoutBtn.addEventListener('click', handleLogout);
 
-function handleLogin() {
-    const password = passwordInput.value.trim();
+// Auto-login check on load
+document.addEventListener('DOMContentLoaded', () => {
+    const savedToken = localStorage.getItem('voiceChatToken');
+    if (savedToken) {
+        passwordInput.value = savedToken;
+        handleLogin(savedToken);
+    }
+});
+
+function handleLogin(password) {
     if (login(password)) {
+        // Save to local storage for future visits
+        localStorage.setItem('voiceChatToken', password);
         // Successful login
         const user = getCurrentUser();
         
@@ -70,6 +82,25 @@ function handleDeafenToggle() {
     } else {
         deafenBtn.classList.remove('active');
     }
+}
+
+function handleLogout() {
+    localStorage.removeItem('voiceChatToken');
+    disconnectVoice();
+    
+    // Reset UI
+    chatScreen.style.display = 'none';
+    loginScreen.style.display = 'flex';
+    passwordInput.value = '';
+    
+    // Clear participants list
+    participantsContainer.innerHTML = '';
+    audioContainer.innerHTML = '';
+    
+    // Reset buttons
+    isDeafened = false;
+    deafenBtn.classList.remove('active');
+    muteBtn.classList.remove('active');
 }
 
 // Called directly from voice.js when a peer joins

@@ -306,3 +306,42 @@ button:hover {
 .control-btn.active:hover {
     background-color: rgba(218, 55, 60, 0.1);
 }
+
+/* Mobile Optimization */
+@media (max-width: 768px) {
+    .main-layout {
+        flex-direction: column;
+    }
+    
+    .sidebar {
+        width: 100%;
+        height: auto;
+        flex-direction: row;
+        align-items: center;
+        padding: 10px;
+    }
+    
+    .sidebar-title {
+        padding: 0;
+        margin-right: 15px;
+    }
+    
+    .channel {
+        margin: 0;
+        padding: 4px 8px;
+    }
+    
+    .header {
+        display: none;
+    }
+    
+    .participants-area {
+        padding: 16px;
+        justify-content: center;
+    }
+    
+    .participant-card {
+        width: 120px;
+        padding: 15px;
+    }
+}

@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voice Chat</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Login Screen -->
+    <div id="login-screen" class="screen">
+        <div class="login-box">
+            <h1>Özel Sesli Sohbet</h1>
+            <p>Lütfen size verilen özel şifreyi giriniz.</p>
+            <div class="input-group">
+                <input type="password" id="password-input" placeholder="Şifreniz" autocomplete="off">
+            </div>
+            <p id="login-error" class="error-text" style="display: none;">Hatalı şifre. Lütfen tekrar deneyin.</p>
+            <button id="login-btn">Giriş Yap</button>
+        </div>
+    </div>
+
+    <!-- Main Chat Screen -->
+    <div id="chat-screen" class="screen main-layout" style="display: none;">
+        <!-- Left Sidebar -->
+        <div class="sidebar">
+            <h2 class="sidebar-title">KANALLAR</h2>
+            <div class="channel active">
+                <span class="hashtag">#</span> Genel Sohbet
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="content">
+            <div class="header">
+                <h3>Genel Sohbet</h3>
+            </div>
+            
+            <div class="participants-area" id="participants-container">
+                <!-- Participants will be dynamically added here -->
+            </div>
+
+            <!-- Controls (Bottom) -->
+            <div class="controls-bar">
+                <div class="current-user-info">
+                    <div class="avatar" id="my-avatar">X</div>
+                    <div class="details">
+                        <div class="name" id="my-name">Kullanıcı</div>
+                        <div class="status">Bağlı</div>
+                    </div>
+                </div>
+                <div class="buttons">
+                    <button id="mute-btn" class="control-btn" title="Mikrofonu Kapat">
+                        <!-- Mute Icon -->
+                        <svg viewBox="0 0 24 24" width="24" height="24"><path fill="currentColor" d="M12 2C9.79 2 8 3.79 8 6V10C8 12.21 9.79 14 12 14C14.21 14 16 12.21 16 10V6C16 3.79 14.21 2 12 2ZM19 10C19 13.53 16.39 16.44 13 16.93V20H11V16.93C7.61 16.44 5 13.53 5 10H7C7 12.76 9.24 15 12 15C14.76 15 17 12.76 17 10H19Z"></path></svg>
+                    </button>
+                    <button id="deafen-btn" class="control-btn" title="Sağırlaştır">
+                        <!-- Headphone Icon -->
+                        <svg viewBox="0 0 24 24" width="24" height="24"><path fill="currentColor" d="M12 2C6.48 2 2 6.48 2 12V19.5C2 20.88 3.12 22 4.5 22H7V14H4V12C4 7.58 7.58 4 12 4C16.42 4 20 7.58 20 12V14H17V22H19.5C20.88 22 22 20.88 22 19.5V12C22 6.48 17.52 2 12 2Z"></path></svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hidden audio elements container -->
+    <div id="audio-container" style="display: none;"></div>
+
+    <!-- Scripts -->
+    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+    <script src="auth.js"></script>
+    <script src="voice.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>

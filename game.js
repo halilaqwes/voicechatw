@@ -18,8 +18,8 @@ startBtn.addEventListener('click', startGame);
 canvas.addEventListener('mousedown', shootBall);
 canvas.addEventListener('touchstart', (e) => { e.preventDefault(); shootBall(); });
 
-// Local Leaderboard logic
-let leaderboard = {};
+// Local Leaderboard logic (Persisted via LocalStorage)
+let leaderboard = JSON.parse(localStorage.getItem('voiceChatLeaderboard') || '{}');
 
 function startGame() {
     if(isPlaying) return;
@@ -164,6 +164,7 @@ function gameOver() {
 window.updateLeaderboard = function(name, newScore) {
     if(!leaderboard[name] || newScore > leaderboard[name]) {
         leaderboard[name] = newScore;
+        localStorage.setItem('voiceChatLeaderboard', JSON.stringify(leaderboard));
         renderLeaderboard();
     }
 };
@@ -181,7 +182,10 @@ window.syncLeaderboard = function(remoteLeaderboard) {
             hasUpdates = true;
         }
     }
-    if(hasUpdates) renderLeaderboard();
+    if(hasUpdates) {
+        localStorage.setItem('voiceChatLeaderboard', JSON.stringify(leaderboard));
+        renderLeaderboard();
+    }
 };
 
 function renderLeaderboard() {

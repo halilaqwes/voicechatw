@@ -17,7 +17,7 @@ let hoop = { x: 160, y: 50, width: 80, height: 10, speed: 4, direction: 1 };
 let ball = { x: 200, y: 350, radius: 15, isShooting: false, speedY: 0, speedX: 0 };
 
 // Flappy Vars
-let flappy = { x: 70, y: 200, velocity: 0, gravity: 0.6, jump: -9, size: 36 }; 
+let flappy = { x: 70, y: 200, velocity: 0, gravity: 0.2, jump: -5.5, size: 36 }; 
 let pipes = [];
 let frameCount = 0;
 
@@ -67,6 +67,7 @@ function startGame() {
         }, 1000);
     } else {
         resetFlappy();
+        flappy.velocity = flappy.jump; // Initial safety jump!
         timeElem.textContent = `Süre: ∞`;
     }
     
@@ -194,9 +195,9 @@ function updateFlappy() {
     flappy.velocity += flappy.gravity;
     flappy.y += flappy.velocity;
     
-    if(frameCount % 80 === 0) {
-        let gap = 130; 
-        let minHeight = 50;
+    if(frameCount % 100 === 0) {
+        let gap = 150; 
+        let minHeight = 40;
         let pTopHeight = Math.floor(Math.random() * (canvas.height - gap - minHeight * 2)) + minHeight;
         pipes.push({
             x: canvas.width,

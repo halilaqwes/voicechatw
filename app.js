@@ -115,6 +115,19 @@ function handleDeafenToggle() {
         audio.muted = isDeafened;
     });
 
+    // Sesleri GainNode üzerinden kısalım
+    const currentUser = typeof getCurrentUser === 'function' ? getCurrentUser() : null;
+    for (let id in audioAnalyzers) {
+        if (audioAnalyzers[id].gainNode && id !== currentUser?.id) {
+            if (isDeafened) {
+                audioAnalyzers[id].gainNode.gain.value = 0;
+            } else {
+                const slider = document.getElementById(`volume-${id}`);
+                audioAnalyzers[id].gainNode.gain.value = slider ? parseFloat(slider.value) : 1;
+            }
+        }
+    }
+
     if(isDeafened) {
         deafenBtn.classList.add('active');
     } else {
@@ -203,7 +216,7 @@ function createParticipantCard(id, name, isMe) {
             </div>
         </div>
         <div class="participant-name">${name} ${isMe ? '(Siz)' : ''}</div>
-        ${!isMe ? `<input type="range" class="volume-slider" id="volume-${id}" min="0" max="1" step="0.05" value="1" title="Ses Seviyesi" />` : ''}
+        ${!isMe ? `<input type="range" class="volume-slider" id="volume-${id}" min="0" max="3" step="0.05" value="1" title="Ses Seviyesi (Max %300)" />` : ''}
     `;
     
     participantsContainer.appendChild(card);
@@ -211,8 +224,13 @@ function createParticipantCard(id, name, isMe) {
     if(!isMe) {
         const slider = document.getElementById(`volume-${id}`);
         slider.addEventListener('input', (e) => {
-            const audioElem = document.getElementById(`audio-${id}`);
-            if(audioElem) audioElem.volume = e.target.value;
+            const val = parseFloat(e.target.value);
+            if (audioAnalyzers[id] && audioAnalyzers[id].gainNode) {
+                audioAnalyzers[id].gainNode.gain.value = isDeafened ? 0 : val;
+            } else {
+                const audioElem = document.getElementById(`audio-${id}`);
+                if(audioElem) audioElem.volume = Math.min(val, 1);
+            }
         });
 
         const videoElem = document.getElementById(`video-${id}`);
@@ -303,7 +321,28 @@ function setupAudioAnalysis(id, stream) {
         analyser.minDecibels = -60; 
         
         const source = audioCtx.createMediaStreamSource(stream);
-        source.connect(analyser); // We don't connect to destination to avoid echo
+        const gainNode = audioCtx.createGain();
+        
+        let initialVol = 1;
+        const slider = document.getElementById(`volume-${id}`);
+        if(slider) {
+            initialVol = parseFloat(slider.value);
+        }
+        const currentUser = typeof getCurrentUser === 'function' ? getCurrentUser() : null;
+        gainNode.gain.value = (isDeafened && id !== currentUser?.id) ? 0 : initialVol;
+
+        source.connect(gainNode);
+        gainNode.connect(analyser); 
+        
+        if (id !== currentUser?.id) {
+            gainNode.connect(audioCtx.destination);
+            
+            // Orijinal audio elemanını susturalım (yankı olmaması için)
+            const audioElem = document.getElementById(`audio-${id}`);
+            if (audioElem) {
+                audioElem.muted = true;
+            }
+        }
         
         const dataArray = new Uint8Array(analyser.frequencyBinCount);
         const cardRef = document.getElementById('participant-' + id);
@@ -333,7 +372,7 @@ function setupAudioAnalysis(id, stream) {
         
         requestAnimationFrame(checkVolume);
         
-        audioAnalyzers[id] = { context: audioCtx };
+        audioAnalyzers[id] = { context: audioCtx, gainNode: gainNode };
     } catch(e) {
         console.warn('Audio Analysis is not supported or failed', e);
     }

@@ -5,17 +5,28 @@ let dataConnections = {}; // Veri kanalları (Mute durumu aktarımı için)
 
 async function initVoiceChat() {
     try {
-        localStream = await navigator.mediaDevices.getUserMedia({ 
+        let constraints = { 
             audio: {
                 echoCancellation: true,
                 noiseSuppression: true,
-                autoGainControl: false // Dalgalanmayı (sesin kısılıp açılmasını) önlemek için kapatıldı
+                autoGainControl: false
             },
             video: {
                 width: { ideal: 320 },
                 height: { ideal: 240 }
             }
-        });
+        };
+
+        try {
+            // Önce hem mikrofon hem kamera iste
+            localStream = await navigator.mediaDevices.getUserMedia(constraints);
+        } catch (cameraErr) {
+            // Eğer kullanıcının bilgisayarında kamera yoksa hata atar!
+            // Bu durumda sadece mikrofon isteyerek devam et.
+            console.warn("Kamera bulunamadı, sadece ses bağlantısı açılıyor...", cameraErr);
+            constraints.video = false;
+            localStream = await navigator.mediaDevices.getUserMedia(constraints);
+        }
         
         // Başlangıçta kamerayı kapalı tutalım
         if (localStream.getVideoTracks().length > 0) {

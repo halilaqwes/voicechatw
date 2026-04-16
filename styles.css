@@ -464,10 +464,20 @@ button:hover {
         display: flex;
         flex-direction: column;
         overflow: hidden;
+        min-height: 0;
+    }
+    
+    /* View Chat */
+    #view-chat {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        min-height: 0; /* Critical for inner scrolling */
     }
     
     .header {
         height: 44px;
+        flex-shrink: 0;
         padding: 0 10px;
     }
     
@@ -476,29 +486,32 @@ button:hover {
     }
     
     .participants-area {
+        flex: 1;
         padding: 10px;
         justify-content: center;
         align-content: flex-start;
         overflow-y: auto;
+        min-height: 0; /* Ensures it shrinks and scrolls */
     }
     
     .participant-card {
-        width: 130px; 
+        width: 45%; /* Two cards per row */
+        max-width: 150px;
         padding: 10px;
     }
     
     .participant-card.video-active {
-        width: 100%; 
-        height: auto;
+        width: 100%; /* Single large card if video is active */
+        max-width: none;
     }
     
     .participant-card.video-active .participant-avatar {
-        height: 250px;
+        height: 200px; /* Reduced from 250px so buttons remain visible */
     }
     
     .chat-sidebar { 
         width: 100% !important; 
-        height: 40% !important; 
+        height: 35% !important; /* Slightly smaller chat box */
         border-left: none; 
         border-top: 1px solid var(--bg-tertiary);
         flex-shrink: 0;

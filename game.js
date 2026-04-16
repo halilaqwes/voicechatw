@@ -168,6 +168,22 @@ window.updateLeaderboard = function(name, newScore) {
     }
 };
 
+window.getLeaderboardData = function() {
+    return leaderboard;
+};
+
+window.syncLeaderboard = function(remoteLeaderboard) {
+    if(!remoteLeaderboard) return;
+    let hasUpdates = false;
+    for(const [name, scr] of Object.entries(remoteLeaderboard)) {
+        if(!leaderboard[name] || scr > leaderboard[name]) {
+            leaderboard[name] = scr;
+            hasUpdates = true;
+        }
+    }
+    if(hasUpdates) renderLeaderboard();
+};
+
 function renderLeaderboard() {
     const sorted = Object.entries(leaderboard).sort((a,b) => b[1] - a[1]);
     const list = document.getElementById('leaderboard-list');

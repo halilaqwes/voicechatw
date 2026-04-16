@@ -159,6 +159,11 @@ function handleDataConnection(conn) {
                 if(isCamOn) conn.send({ type: 'CAM', state: true });
             }
         }
+        
+        // Yeni bağlanan kişiye skor tablomuzu gönder (Geç bağlananların senkronizasyonu için)
+        if(window.getLeaderboardData) {
+            conn.send({ type: 'SYNC_LEADERBOARD', data: window.getLeaderboardData() });
+        }
     });
 
     conn.on('data', (data) => {
@@ -181,6 +186,11 @@ function handleDataConnection(conn) {
         else if (data.type === 'SCORE') {
             if(window.updateLeaderboard) {
                 window.updateLeaderboard(data.name, data.score);
+            }
+        }
+        else if (data.type === 'SYNC_LEADERBOARD') {
+            if(window.syncLeaderboard) {
+                window.syncLeaderboard(data.data);
             }
         }
     });

@@ -197,7 +197,7 @@ button:hover {
     width: 64px;
     height: 64px;
     border-radius: 50%;
-    background-color: var(--accent);
+    background-color: var(--bg-tertiary);
     display: flex;
     justify-content: center;
     align-items: center;
@@ -207,6 +207,22 @@ button:hover {
     margin-bottom: 12px;
     border: 3px solid transparent;
     transition: border-color 0.15s ease;
+    position: relative;
+}
+
+.mute-indicator {
+    position: absolute;
+    bottom: -4px;
+    right: -4px;
+    width: 24px;
+    height: 24px;
+    background-color: var(--bg-primary);
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 0 0 4px rgba(0,0,0,0.5);
+    border: 2px solid var(--bg-secondary);
 }
 
 .participant-card.speaking .participant-avatar {
@@ -307,6 +323,94 @@ button:hover {
     background-color: rgba(218, 55, 60, 0.1);
 }
 
+/* Volume Slider */
+.volume-slider {
+    width: 100%;
+    margin-top: 12px;
+    accent-color: var(--accent);
+    cursor: pointer;
+    height: 4px;
+}
+
+/* Chat Sidebar */
+.chat-sidebar {
+    width: 320px;
+    background-color: var(--bg-secondary);
+    display: flex;
+    flex-direction: column;
+    border-left: 1px solid var(--bg-tertiary);
+}
+    
+.chat-header { 
+    padding: 16px; 
+    border-bottom: 1px solid var(--bg-tertiary); 
+    font-weight: 600; 
+    color: #fff; 
+    height: 48px;
+    display: flex;
+    align-items: center;
+}
+    
+.chat-messages { 
+    flex: 1; 
+    padding: 16px; 
+    overflow-y: auto; 
+    display: flex; 
+    flex-direction: column; 
+    gap: 12px; 
+}
+    
+.chat-message { 
+    display:flex; 
+    flex-direction: column; 
+}
+    
+.chat-message .sender { 
+    font-size: 12px; 
+    font-weight: 600; 
+    color: var(--accent); 
+    margin-bottom: 4px; 
+}
+    
+.chat-message .text { 
+    font-size: 14px; 
+    background: var(--bg-primary); 
+    padding: 8px 12px; 
+    border-radius: 6px; 
+    align-self: flex-start; 
+    max-width: 90%; 
+    word-break: break-word;
+}
+    
+.chat-message.me .sender { 
+    color: var(--green); 
+    text-align: right; 
+}
+    
+.chat-message.me .text { 
+    align-self: flex-end; 
+    background: var(--accent); 
+    color: white;
+}
+    
+.chat-input-area { 
+    padding: 16px; 
+    border-top: 1px solid var(--bg-tertiary);
+}
+    
+.chat-input-area input { 
+    width: 100%; 
+    background: var(--bg-primary); 
+    border: none; 
+    padding: 12px; 
+    border-radius: 8px; 
+    color: var(--text-normal); 
+    outline: none; 
+}
+.chat-input-area input:focus {
+    box-shadow: 0 0 0 2px var(--accent);
+}
+
 /* Mobile Optimization */
 @media (max-width: 768px) {
     .main-layout {
@@ -343,5 +447,12 @@ button:hover {
     .participant-card {
         width: 120px;
         padding: 15px;
+    }
+
+    .chat-sidebar { 
+        width: 100%; 
+        height: 350px; 
+        border-left: none; 
+        border-top: 1px solid var(--bg-tertiary); 
     }
 }

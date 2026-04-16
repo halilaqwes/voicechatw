@@ -1,6 +1,7 @@
 let localStream = null;
 let peer = null;
 let activeCalls = {}; // Kime bağlandığımızı tutmak için
+let dataConnections = {}; // Veri kanalları (Mute durumu aktarımı için)
 
 async function initVoiceChat() {
     try {
@@ -8,12 +9,21 @@ async function initVoiceChat() {
             audio: {
                 echoCancellation: true,
                 noiseSuppression: true,
-                autoGainControl: true
+                autoGainControl: false // Dalgalanmayı (sesin kısılıp açılmasını) önlemek için kapatıldı
             } 
         });
         
         peer = new Peer(currentUser.id, {
-            debug: 2
+            debug: 2,
+            pingInterval: 5000, // Bağlantı kopmalarını önlemek için sık ping
+            config: {
+                'iceServers': [
+                    { urls: 'stun:stun.l.google.com:19302' },
+                    { urls: 'stun:stun1.l.google.com:19302' },
+                    { urls: 'stun:stun2.l.google.com:19302' },
+                    { urls: 'stun:global.stun.twilio.com:3478' }
+                ]
+            }
         });
 
         peer.on('open', (id) => {
@@ -32,6 +42,11 @@ async function initVoiceChat() {
             console.log('Gelen çağrı: ' + call.peer);
             call.answer(localStream); // Çağrıyı kendi mikrofonumuzla cevaplıyoruz
             handleCallEvents(call);
+        });
+
+        // Veri kanalı (Mute durumlarını almak için)
+        peer.on('connection', (conn) => {
+            handleDataConnection(conn);
         });
 
         peer.on('error', (err) => {
@@ -56,8 +71,13 @@ function callUser(targetId) {
     
     // Güvenli arama
     const call = peer.call(targetId, localStream);
+    const conn = peer.connect(targetId); // Veri kanalı aç (Mute için)
+    
     if(call) {
         handleCallEvents(call);
+    }
+    if(conn) {
+        handleDataConnection(conn);
     }
 }
 
@@ -88,19 +108,75 @@ function handleCallEvents(call) {
 
 function cleanupCall(peerId) {
     delete activeCalls[peerId];
+    if (dataConnections[peerId]) {
+        dataConnections[peerId].close();
+        delete dataConnections[peerId];
+    }
     if (window.onUserDisconnected) {
         window.onUserDisconnected(peerId);
     }
+}
+
+function handleDataConnection(conn) {
+    if(!conn) return;
+    
+    conn.on('open', () => {
+        dataConnections[conn.peer] = conn;
+        // Bağlandığımızda karşı tarafa mikrofonumuzun o anki durumunu bildir
+        if(localStream) {
+            const isMuted = !localStream.getAudioTracks()[0].enabled;
+            if(isMuted) conn.send({ type: 'MUTE', state: true });
+        }
+    });
+
+    conn.on('data', (data) => {
+        if(!data) return;
+        if(data.type === 'MUTE') {
+            if(window.updateUserMuteIcon) {
+                window.updateUserMuteIcon(conn.peer, data.state);
+            }
+        }
+        else if (data.type === 'CHAT') {
+            if(window.onChatMessageReceived) {
+                window.onChatMessageReceived(conn.peer, data.text);
+            }
+        }
+    });
+
+    conn.on('close', () => {
+        delete dataConnections[conn.peer];
+    });
 }
 
 function toggleMute() {
     if(localStream) {
         const audioTrack = localStream.getAudioTracks()[0];
         audioTrack.enabled = !audioTrack.enabled;
+        const isMuted = !audioTrack.enabled;
+        
+        // Diğer herkese mute durumunu bildir
+        broadcastMuteState(isMuted);
+        
         return audioTrack.enabled; // true = ses açık, false = sessizde
     }
     return true;
 }
+
+function broadcastMuteState(isMuted) {
+    Object.values(dataConnections).forEach(conn => {
+        if(conn && conn.open) {
+            conn.send({ type: 'MUTE', state: isMuted });
+        }
+    });
+}
+
+window.broadcastChat = function(text) {
+    Object.values(dataConnections).forEach(conn => {
+        if(conn && conn.open) {
+            conn.send({ type: 'CHAT', text: text });
+        }
+    });
+};
 
 function disconnectVoice() {
     if(peer) peer.destroy();
@@ -108,4 +184,5 @@ function disconnectVoice() {
         localStream.getTracks().forEach(t => t.stop());
     }
     activeCalls = {};
+    dataConnections = {};
 }
